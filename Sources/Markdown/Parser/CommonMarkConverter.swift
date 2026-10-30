@@ -70,6 +70,46 @@ fileprivate enum CommonMarkNodeType: String {
     case taskListItem = "tasklist"
 }
 
+fileprivate extension CommonMarkNodeType {
+    /// cmark's type string to a case without `init(rawValue:)`: its String switch retains one global cache per call,
+    /// which threads parsing in parallel contend for (live-markdown build 14).
+    init?(cString: UnsafePointer<CChar>) {
+        func equals(_ literal: StaticString) -> Bool {
+            strcmp(cString, UnsafeRawPointer(literal.utf8Start).assumingMemoryBound(to: CChar.self)) == 0
+        }
+        if equals("text") { self = .text; return }
+        if equals("softbreak") { self = .softBreak; return }
+        if equals("paragraph") { self = .paragraph; return }
+        if equals("emph") { self = .emphasis; return }
+        if equals("strong") { self = .strong; return }
+        if equals("code") { self = .code; return }
+        if equals("link") { self = .link; return }
+        if equals("item") { self = .item; return }
+        if equals("list") { self = .list; return }
+        if equals("heading") { self = .heading; return }
+        if equals("linebreak") { self = .lineBreak; return }
+        if equals("document") { self = .document; return }
+        if equals("block_quote") { self = .blockQuote; return }
+        if equals("code_block") { self = .codeBlock; return }
+        if equals("html_block") { self = .htmlBlock; return }
+        if equals("custom_block") { self = .customBlock; return }
+        if equals("thematic_break") { self = .thematicBreak; return }
+        if equals("html_inline") { self = .html; return }
+        if equals("custom_inline") { self = .customInline; return }
+        if equals("image") { self = .image; return }
+        if equals("attribute") { self = .inlineAttributes; return }
+        if equals("NONE") { self = .none; return }
+        if equals("<unknown>") { self = .unknown; return }
+        if equals("strikethrough") { self = .strikethrough; return }
+        if equals("table") { self = .table; return }
+        if equals("table_header") { self = .tableHead; return }
+        if equals("table_row") { self = .tableRow; return }
+        if equals("table_cell") { self = .tableCell; return }
+        if equals("tasklist") { self = .taskListItem; return }
+        return nil
+    }
+}
+
 /// Represents the result of a cmark conversion: the current `MarkupConverterState` and the resulting converted node.
 fileprivate struct MarkupConversion<Result> {
     let state: MarkupConverterState
@@ -135,9 +175,9 @@ fileprivate struct MarkupConverterState {
 
     /// The type of the last parsed cmark node.
     var nodeType: CommonMarkNodeType {
-        let typeString = String(cString: cmark_node_get_type_string(node))
-        guard let type = CommonMarkNodeType(rawValue: typeString) else {
-            fatalError("Unknown cmark node type '\(typeString)' encountered during conversion")
+        let typeString = cmark_node_get_type_string(node)!
+        guard let type = CommonMarkNodeType(cString: typeString) else {
+            fatalError("Unknown cmark node type '\(String(cString: typeString))' encountered during conversion")
         }
         return type
     }
