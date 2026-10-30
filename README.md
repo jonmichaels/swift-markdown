@@ -1,5 +1,9 @@
 # Swift Markdown
 
+> **This is a fork** of [swiftlang/swift-markdown](https://github.com/swiftlang/swift-markdown), kept for
+> [live-markdown](https://github.com/jonmichaels/live-markdown-editor). The patched releases are the `-lme.<n>` tags on
+> the `lme-0.9` branch; what each patch fixes, why, and how it was measured is in [PATCHES.md](PATCHES.md).
+
 Swift `Markdown` is a Swift package for parsing, building, editing, and analyzing Markdown documents.
 
 The parser is powered by GitHub-flavored Markdown's [cmark-gfm](https://github.com/github/cmark-gfm) implementation, so it follows the spec closely. As the needs of the community change, the effective dialect implemented by this library may change.
